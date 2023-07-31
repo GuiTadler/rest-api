@@ -131,3 +131,8 @@ environments:
 grails:
     databinding:
         dateFormats: ['dd/MM/yyyy']
+---
+grails:
+    gorm:
+        transactions:
+            readOnly: false

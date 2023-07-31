@@ -7,5 +7,6 @@ class Departamento {
     static hasMany = [empregados: Empregado] // Um departamento pode ter muitos empregados
 
     static constraints = {
+        nome nullable: false
     }
 }

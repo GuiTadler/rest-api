@@ -1,5 +1,5 @@
 ---
-
+server.servlet.context-path: '/${info.app.name}' # gera o nome do projeto logo apos o localhost
 
 grails:
     profile: rest-api
@@ -59,21 +59,21 @@ grails:
                         - Trident
         types:
             json:
-              - application/json
-              - text/json   
+                - application/json
+                - text/json
             hal:
-              - application/hal+json
-              - application/hal+xml  
+                - application/hal+json
+                - application/hal+xml
             xml:
-              - text/xml
-              - application/xml                                 
+                - text/xml
+                - application/xml
             atom: application/atom+xml
             css: text/css
             csv: text/csv
             js: text/javascript
             rss: application/rss+xml
             text: text/plain
-            all: '*/*'            
+            all: '*/*'
     urlmapping:
         cache:
             maxsize: 1000
@@ -82,6 +82,7 @@ grails:
     converters:
         encoding: UTF-8
 
+# Configuração para o formato de data 'dd/MM/yyyy'
 ---
 hibernate:
     cache:
@@ -93,21 +94,21 @@ dataSource:
     jmxExport: true
     driverClassName: org.h2.Driver
     username: sa
-    password: ''
+    password: 'TESTE'
 
 environments:
     development:
         dataSource:
             dbCreate: create-drop
-            url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE  # http://localhost:8080/rest-api/h2-console
     test:
         dataSource:
             dbCreate: update
-            url: jdbc:h2:mem:testDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            url: jdbc:h2:mem:testDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE # http://localhost:8080/rest-api/h2-console
     production:
         dataSource:
             dbCreate: none
-            url: jdbc:h2:./prodDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            url: jdbc:h2:./prodDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE # http://localhost:8080/rest-api/h2-console
             properties:
                 jmxEnabled: true
                 initialSize: 5
@@ -126,3 +127,7 @@ environments:
                 testOnReturn: false
                 jdbcInterceptors: ConnectionState
                 defaultTransactionIsolation: 2 # TRANSACTION_READ_COMMITTED
+
+grails:
+    databinding:
+        dateFormats: ['dd/MM/yyyy']

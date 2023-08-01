@@ -1,22 +1,14 @@
 package rest.api
 
 import grails.validation.ValidationException
-
 import java.time.format.DateTimeFormatter
-
-import static org.springframework.http.HttpStatus.CREATED
-import static org.springframework.http.HttpStatus.NOT_FOUND
-import static org.springframework.http.HttpStatus.NO_CONTENT
-import static org.springframework.http.HttpStatus.OK
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
-
 import grails.gorm.transactions.ReadOnly
 import grails.gorm.transactions.Transactional
 
 @ReadOnly
 class EmpregadoController {
 
-    EmpregadoService empregadoService
+    def empregadoService
 
     static responseFormats = ['json']
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
@@ -28,34 +20,44 @@ class EmpregadoController {
         def empregados = empregadoService.list(params)
 
         def listarEmpregado = empregados.collect { empregado ->
-            [ id:empregado.id,
-              nome:empregado.nome,
-              dataNascimento:empregado.dataNascimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-              matricula:empregado.matricula,
-              departamento:empregado.departamento.id]
+            [ id: empregado.id,
+              departamento: [
+                      id: empregado.departamento ? empregado.departamento.id : null,
+                      nome: empregado.departamento ? empregado.departamento.nome : null
+              ],
+              matricula: empregado.matricula,
+              nome: empregado.nome,
+              dataNascimento: empregado.dataNascimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))]
         }
         respond listarEmpregado, model: [empregadoCount: empregadoService.count()]
     }
 
     def show(Long id) {
-        def idEmpregado =  empregadoService.get(id)
-
-        def listarEmpregadoId = idEmpregado.collect { empregado ->
-            [ id:empregado.id,
-              nome:empregado.nome,
-              dataNascimento:empregado.dataNascimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-              matricula:empregado.matricula,
-              departamento:empregado.departamento.id]
+        def empregado = empregadoService.get(id)
+        if (!empregado) {
+            render text: "Registro inexistente."
+            return
         }
+
+        def listarEmpregadoId = [id: empregado.id,
+                                 departamento: [
+                                         id: empregado.departamento ? empregado.departamento.id : null,
+                                         nome: empregado.departamento ? empregado.departamento.nome : null
+                                 ],
+                                 matricula: empregado.matricula,
+                                 nome: empregado.nome,
+                                 dataNascimento: empregado.dataNascimento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))]
+
         respond listarEmpregadoId, model: [empregadoCount: empregadoService.count()]
     }
 
     @Transactional
     def save(Empregado empregado) {
-        if (empregado == null) {
-            render status: NOT_FOUND
+        if (!empregado) {
+            render text: "Erro ao criar o registro."
             return
         }
+
         if (empregado.hasErrors()) {
             transactionStatus.setRollbackOnly()
             respond empregado.errors
@@ -64,20 +66,19 @@ class EmpregadoController {
 
         try {
             empregadoService.save(empregado)
+            render text: "Registro criado com sucesso."
         } catch (ValidationException e) {
             respond empregado.errors
-            return
         }
-
-        respond empregado, [status: CREATED, view:"show"]
     }
 
     @Transactional
     def update(Empregado empregado) {
-        if (empregado == null) {
-            render status: NOT_FOUND
+        if (!empregado) {
+            render text: "Registro não encontrado."
             return
         }
+
         if (empregado.hasErrors()) {
             transactionStatus.setRollbackOnly()
             respond empregado.errors
@@ -86,21 +87,20 @@ class EmpregadoController {
 
         try {
             empregadoService.save(empregado)
+            render text: "Registro atualizado com sucesso."
         } catch (ValidationException e) {
             respond empregado.errors
-            return
         }
-
-        respond empregado, [status: OK, view:"show"]
     }
 
     @Transactional
     def delete(Long id) {
         if (id == null || empregadoService.delete(id) == null) {
-            render status: NOT_FOUND
+            render text: "Registro não encontrado."
             return
         }
-
-        render status: NO_CONTENT
+        render text: "Registro excluído com sucesso."
     }
 }
+
+

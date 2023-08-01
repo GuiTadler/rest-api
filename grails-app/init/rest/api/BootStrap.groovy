@@ -10,7 +10,5 @@ class BootStrap {
     }
 
     def destroy = {
-        Empregado.deleteAll()
-        Departamento.deleteAll()
     }
 }

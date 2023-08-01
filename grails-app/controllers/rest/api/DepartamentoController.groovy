@@ -1,12 +1,7 @@
 package rest.api
 
 import grails.validation.ValidationException
-import static org.springframework.http.HttpStatus.CREATED
-import static org.springframework.http.HttpStatus.NOT_FOUND
-import static org.springframework.http.HttpStatus.NO_CONTENT
-import static org.springframework.http.HttpStatus.OK
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
-
+import rest.api.DepartamentoExclusaoException
 import grails.gorm.transactions.ReadOnly
 import grails.gorm.transactions.Transactional
 
@@ -24,13 +19,19 @@ class DepartamentoController {
     }
 
     def show(Long id) {
-        respond departamentoService.get(id)
+        def departamento = departamentoService.get(id)
+        if (!departamento) {
+            render text: "Departamento não encontrado."
+            return
+        }
+
+        respond departamento
     }
 
     @Transactional
     def save(Departamento departamento) {
-        if (departamento == null) {
-            render status: NOT_FOUND
+        if (!departamento) {
+            render text: "Erro ao criar o departamento."
             return
         }
         if (departamento.hasErrors()) {
@@ -41,18 +42,16 @@ class DepartamentoController {
 
         try {
             departamentoService.save(departamento)
+            render text: "Registro criado com sucesso."
         } catch (ValidationException e) {
             respond departamento.errors
-            return
         }
-
-        respond departamento, [status: CREATED, view:"show"]
     }
 
     @Transactional
     def update(Departamento departamento) {
-        if (departamento == null) {
-            render status: NOT_FOUND
+        if (!departamento) {
+            render text: "Departamento não encontrado."
             return
         }
         if (departamento.hasErrors()) {
@@ -63,21 +62,27 @@ class DepartamentoController {
 
         try {
             departamentoService.save(departamento)
+            render text: "Registro atualizado com sucesso."
         } catch (ValidationException e) {
             respond departamento.errors
-            return
         }
-
-        respond departamento, [status: OK, view:"show"]
     }
 
     @Transactional
     def delete(Long id) {
-        if (id == null || departamentoService.delete(id) == null) {
-            render status: NOT_FOUND
+        Departamento departamento = Departamento.get(id)
+        if (!departamento) {
+            response.sendError(404, "Departamento não encontrado.")
             return
         }
-
-        render status: NO_CONTENT
+        try {
+            departamento.delete(flush: true)
+            response.status = 200
+            render "Departamento excluído com sucesso."
+        } catch (DepartamentoExclusaoException e) {
+            response.sendError(409, e.message)
+        } catch (Exception e) {
+            response.sendError(500, "Ocorreu um erro ao excluir o departamento.")
+        }
     }
 }

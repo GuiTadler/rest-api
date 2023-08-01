@@ -1,12 +1,19 @@
 package rest.api
 
-class Departamento {
+import rest.api.DepartamentoExclusaoException
 
-    Long id
+class Departamento {
     String nome
-    static hasMany = [empregados: Empregado] // Um departamento pode ter muitos empregados
+    static hasMany = [empregados: Empregado]
 
     static constraints = {
-        nome nullable: false
+        nome blank: false
+    }
+
+    def beforeDelete() {
+        // Verificar se o departamento está associado a algum empregado
+        if (empregados) {
+            throw new DepartamentoExclusaoException("O departamento está associado a um ou mais empregados e não pode ser excluído.")
+        }
     }
 }
